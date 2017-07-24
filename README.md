@@ -1,5 +1,5 @@
 # RabbitHole
-A C# Promise package for .net core.
+A RabbitMQ wrapper for .net core
 
 How to use it?
 
