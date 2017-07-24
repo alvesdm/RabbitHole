@@ -10,6 +10,11 @@ namespace RabbitHole
         public string ExchangeName { get; private set; }
         public string RoutingKey { get; private set; }
 
+        public Binding()
+        {
+            this.RoutingKey = string.Empty;
+        }
+
         public IBinding WithExchange(string exchangeName)
         {
             this.ExchangeName = exchangeName;

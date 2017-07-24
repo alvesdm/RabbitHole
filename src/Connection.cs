@@ -20,7 +20,7 @@ namespace RabbitHole
 
         public RabbitMQ.Client.IConnection CreateRabbitConnection(string name)
         {
-            var factory = new ConnectionFactory() { HostName = this.HostName, UserName = this.UserName, Password = this.Password, VirtualHost = this.VirtualHost };
+            var factory = new ConnectionFactory { HostName = this.HostName, UserName = this.UserName, Password = this.Password, VirtualHost = this.VirtualHost };
             this.RabbitConnection = name != null 
                 ? factory.CreateConnection(name) 
                 : factory.CreateConnection();

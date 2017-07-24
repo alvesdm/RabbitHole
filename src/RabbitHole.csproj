@@ -7,11 +7,11 @@
     <Authors>Demetrio Alves</Authors>
     <Company />
     <Description>A RabbitMQ wrapper for .net core</Description>
-    <PackageLicenseUrl>https://github.com/alvesdm/RabbitHole</PackageLicenseUrl>
+    <PackageLicenseUrl>https://github.com/alvesdm/RabbitHole/blob/master/LICENSE.txt</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/alvesdm/RabbitHole</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alvesdm/RabbitHole</RepositoryUrl>
     <PackageTags>RabbitMQ .netcore</PackageTags>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

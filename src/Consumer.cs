@@ -12,7 +12,7 @@ namespace RabbitHole
     {
         public string Queue { get; set; }
         public bool AutoKnowledge { get; private set; }
-        private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, bool> _action = null;
+        private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, bool> _action;
         private IModel _channel;
 
         public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, bool> action)
@@ -35,6 +35,11 @@ namespace RabbitHole
 
         public void Go(IConnection connection, IExchange exchange, IQueue queue)
         {
+            void KnoledgeIt(ulong deliveryTag)
+            {
+                _channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
+            }
+
             try
             {
                 _channel = connection.RabbitConnection.CreateModel();
@@ -53,10 +58,6 @@ namespace RabbitHole
                 }
 
                 var consumer = new EventingBasicConsumer(_channel);
-
-                Action<ulong> knoledgeIt = (deliveryTag) => {
-                    _channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
-                };
                 consumer.Received += (model, ea) =>
                 {
                     var success = false;
@@ -67,7 +68,7 @@ namespace RabbitHole
                     }
                     finally {
                         if (this.AutoKnowledge || success)
-                            knoledgeIt(ea.DeliveryTag);
+                            KnoledgeIt(ea.DeliveryTag);
                     }
                 };
 

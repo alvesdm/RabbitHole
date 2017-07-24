@@ -37,6 +37,46 @@ public class TestMessageReceived : RabbitHole.IMessage
 }
 ```
 
+...but of course you can go in a simpler way.
+i.e a simple fanout would go like this:
+
+Publisher
+```csharp
+using (var client = RabbitHole.Factories.ClientFactory.Create())
+{
+	client
+		.WithExchange(c => c.WithName("MessagingService"))
+		.ConfiguringMessage<CustomerUpdated>(c => c.WithCorrelationId(i => i.Id));
+
+	while (true)
+	{
+		client
+			.Publish<CustomerUpdated>(p => p.WithMessage(new CustomerUpdated
+			{
+				Id = Guid.NewGuid(),
+				Name = "RabbitHole is my name"
+			}));
+		System.Threading.Thread.Sleep(1500);
+	}
+}
+```
+
+Consumer
+```csharp
+using (var client = RabbitHole.Factories.ClientFactory.Create())
+{
+	client
+		.WithExchange(c => c.WithName("MessagingService"))
+		.WithQueue(q => q.WithName("MaillingService.CustomerUpdated"))
+		.Consume<CustomerUpdated>(c => c
+										.WhenReceive((ch, ea, message) =>
+										{
+											Console.WriteLine($"Received --> Message: {message.Name}, CorrelationId: {ea.BasicProperties.CorrelationId}");
+											return true;
+										}));
+}
+```
+
 # License
 
 Code released under the MIT license.

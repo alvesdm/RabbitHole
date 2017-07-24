@@ -19,7 +19,7 @@ namespace RabbitHole
         public Queue()
         {
             this.Bindings = new List<IBinding>();
-            this.AutoDelete = true;
+            this.Durable = true;
             this.Qos = new BasicQos()
                         .WithPrefetchCount(1)
                         .WithPrefetchSize(0);
@@ -51,10 +51,10 @@ namespace RabbitHole
 
         public IQueue WithBinding(Func<IBinding, IBinding> binding)
         {
-            var b = new Binding();
+            var b = binding(new Binding());
             b.WithQueue(this);
-            binding(b);
             this.Bindings.Add(b);
+
             return this;
         }
 

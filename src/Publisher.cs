@@ -17,8 +17,6 @@ namespace RabbitHole
         {
             try
             {
-                //string queueName;
-                Guid correlationId;
                 var properties = this.Properties;
                 var routingKey = this.RoutingKey;
 
@@ -28,13 +26,11 @@ namespace RabbitHole
                     if (messagesConfiguration.ContainsKey(messageType))
                     {
                         var messageConfiguration = messagesConfiguration[messageType] as IMessageConfiguration<T>;
-                        properties = messageConfiguration.Properties != null ?
-                            messageConfiguration.Properties :
-                            channel.CreateBasicProperties();
+                        properties = messageConfiguration.Properties ?? channel.CreateBasicProperties();
 
                         routingKey = messageConfiguration.RoutingKey;
                         //queueName = messageConfiguration.QueueName;
-                        correlationId = messageConfiguration.CorrelationField((T)this.Message);
+                        var correlationId = messageConfiguration.CorrelationField((T)this.Message);
                         properties.CorrelationId = (correlationId != Guid.Empty ? correlationId : Guid.NewGuid()).ToString();
                         properties.Persistent = messageConfiguration.Persistent;
                     }

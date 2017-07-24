@@ -15,6 +15,7 @@ namespace RabbitHole
         public Exchange()
         {
             this.AutoDelete = true;
+            this.Type = ExchangeType.Fanout;
         }
 
         public IExchange BeingAutoDeleted(bool isAutoDelete)

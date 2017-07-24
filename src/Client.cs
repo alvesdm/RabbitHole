@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using RabbitHole.Enums;
 
 namespace RabbitHole
 {
@@ -24,6 +26,11 @@ namespace RabbitHole
         public void Consume<T>(Func<IConsumer<T>, IConsumer<T>> consumer)
             where T : IMessage
         {
+            //Perform autobindind if none
+            if (!_queue.Bindings.Any() && _exchange.Type.Equals(ExchangeType.Fanout))
+            {
+                _queue.WithBinding(b => b.WithExchange(_exchange).WithQueue(_queue));
+            }
             _consumer = consumer(new Consumer<T>());
             _consumer.Go(_connection, _exchange, _queue);
         }
@@ -42,8 +49,7 @@ namespace RabbitHole
 
         public void Shutdown()
         {
-            if (_consumer != null)
-                _consumer.CloseChannel();
+            _consumer?.CloseChannel();
             _connection.Close();
             _connection.Dispose();
         }

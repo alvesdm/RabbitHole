@@ -17,6 +17,7 @@ namespace RabbitHole
         public MessageConfiguration()
         {
             this.Persistent = true;
+            this.RoutingKey = string.Empty;
         }
 
         public IMessageConfiguration<T> BeingPersistent(bool isPersistent)
