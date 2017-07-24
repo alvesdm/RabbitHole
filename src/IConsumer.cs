@@ -13,7 +13,7 @@ namespace RabbitHole
         string Queue { get; }
         bool AutoKnowledge { get; }
         IConsumer<T> WithQueue(string queueName);
-        IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, bool> action);
+        IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> action);
         IConsumer<T> BeingAutoKnowledge(bool isAutoKnowledge);
 
     }

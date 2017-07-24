@@ -1,6 +1,12 @@
 # RabbitHole
 A RabbitMQ wrapper for .net core
 
+
+Nuget
+```
+Install-Package alvesdm.RabbitHole
+```
+
 How to use it?
 
 ```csharp

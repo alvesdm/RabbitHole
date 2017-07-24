@@ -12,21 +12,27 @@ namespace RabbitHole
         public string RoutingKey { get; private set; }
         public IBasicProperties Properties { get; private set; }
 
+        public Publisher()
+        {
+            this.RoutingKey = string.Empty;
+        }
+
         public void Go<T>(IConnection connection, IExchange exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration)
             where T : IMessage
         {
             try
             {
-                var properties = this.Properties;
                 var routingKey = this.RoutingKey;
 
                 using (var channel = connection.RabbitConnection.CreateModel())
                 {
+                    var properties = this.Properties ?? channel.CreateBasicProperties();
                     var messageType = this.Message.GetType();
                     if (messagesConfiguration.ContainsKey(messageType))
                     {
                         var messageConfiguration = messagesConfiguration[messageType] as IMessageConfiguration<T>;
-                        properties = messageConfiguration.Properties ?? channel.CreateBasicProperties();
+                        if (messageConfiguration.Properties != null)
+                            properties = messageConfiguration.Properties;
 
                         routingKey = messageConfiguration.RoutingKey;
                         //queueName = messageConfiguration.QueueName;

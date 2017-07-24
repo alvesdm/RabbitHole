@@ -12,10 +12,10 @@ namespace RabbitHole
     {
         public string Queue { get; set; }
         public bool AutoKnowledge { get; private set; }
-        private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, bool> _action;
+        private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> _action;
         private IModel _channel;
 
-        public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, bool> action)
+        public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> action)
         {
             _action = action;
             return this;
@@ -64,7 +64,7 @@ namespace RabbitHole
                     var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(ea.Body));
                     try
                     {
-                        success = _action(model as EventingBasicConsumer, ea, message);
+                        success = _action(model as EventingBasicConsumer, ea, message, ea.BasicProperties.CorrelationId);
                     }
                     finally {
                         if (this.AutoKnowledge || success)
