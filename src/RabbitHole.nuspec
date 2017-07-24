@@ -1,0 +1,24 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <id>alvesdm.RabbitHole</id>
+    <version>$version$</version>
+    <authors>Demetrio Alves</authors>
+    <owners>Demetrio Alves</owners>
+    <licenseUrl>https://220on.cc</licenseUrl>
+    <projectUrl>https://220on.cc</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A RabbitMQ wrapper for .net core</description>
+    <releaseNotes />
+	<dependencies>
+	  <group>
+      <dependency id="Newtonsoft.Json" version="10.0.3" />
+      <dependency id="RabbitMQ.Client" version="4.1.3" />
+	  </group>
+	</dependencies>
+  </metadata>
+  <files>
+		<file src="netcoreapp1.1\RabbitHole.dll" target="lib\netcoreapp1.1\RabbitHole.dll" /> 
+		<file src="netcoreapp1.1\RabbitHole.pdb" target="lib\netcoreapp1.1\RabbitHole.pdb" /> 
+	</files>
+</package>
