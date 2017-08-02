@@ -14,6 +14,9 @@ namespace RabbitHole
         IConnection WithPassword(string password);
         IConnection WithHostName(string hostName);
         IConnection WithVirtualHost(string virtualHost);
+        IConnection WithAutomaticRecovery(bool automaticRecoveryEnabled);
+        IConnection WithTopologyRecovery(bool topologyRecoveryEnabled);
+        IConnection WithRecoveryRetryInterval(int recoveryRetryInterval);
         RabbitMQ.Client.IConnection CreateRabbitConnection();
         RabbitMQ.Client.IConnection CreateRabbitConnection(string name);
         void Close();

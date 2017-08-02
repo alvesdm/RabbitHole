@@ -4,6 +4,8 @@ using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
+using Polly;
+using RabbitHole.Exceptions;
 
 namespace RabbitHole
 {
@@ -14,6 +16,7 @@ namespace RabbitHole
         public bool AutoKnowledge { get; private set; }
         private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> _action;
         private IModel _channel;
+        private int _tryConnectAttempts = 15;
 
         public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> action)
         {
@@ -42,7 +45,8 @@ namespace RabbitHole
 
             try
             {
-                _channel = connection.RabbitConnection.CreateModel();
+                TryToStablishAChannel(connection);
+
                 _channel.ExchangeDeclare(exchange: exchange.Name,
                                         type: exchange.Type.ToString().ToLower(),
                                         durable: exchange.Durable,
@@ -81,6 +85,27 @@ namespace RabbitHole
                 ///TODO logging
                 throw;
             }
+        }
+
+        private void TryToStablishAChannel(IConnection connection)
+        {
+            Policy
+                .Handle<Exception>()
+                .WaitAndRetry(
+                    _tryConnectAttempts,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(1.5, retryAttempt)),
+                    (exception, timespan) =>
+                    {
+                        Console.WriteLine($"Unable to stablish a channel. Trying again in {timespan.TotalSeconds} seconds.", exception);
+                        //throw new UnableToCreateChannelException($"Unable to stablish a channel. Trying again in {timespan.TotalSeconds} seconds.", exception);
+                    })
+                .Execute(() =>
+                {
+                    _channel = connection.RabbitConnection.CreateModel();
+                });
+
+            if (_channel == null)
+                throw new UnableToCreateChannelException($"We were unable to stablish a channel. We tried {_tryConnectAttempts} times.");
         }
 
         public void CloseChannel()

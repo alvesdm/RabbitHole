@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <AssemblyName>RabbitHole.Samples.PubSub</AssemblyName>
+    <RootNamespace>RabbitHole.Samples.PubSub</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\RabbitHole.csproj" />
+  </ItemGroup>
+
+</Project>

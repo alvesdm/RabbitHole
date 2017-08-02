@@ -15,13 +15,16 @@ namespace RabbitHole.Factories
             return Create(null);
         }
 
-        public static IClient Create(string name)
+        public static IClient Create(string name, bool automaticRecoveryEnabled = true, bool topologyRecoveryEnabled = true, int recoveryRetryInterval = 10)
         {
             var connection = new Connection()
                                     .WithHostName(_defaultHostName)
                                     .WithVirtualHost(_defaulVirtualHost)
                                     .WithUserName(_defaultUserName)
-                                    .WithPassword(_defaultPassword);
+                                    .WithPassword(_defaultPassword)
+                                    .WithAutomaticRecovery(automaticRecoveryEnabled)
+                                    .WithTopologyRecovery(topologyRecoveryEnabled)
+                                    .WithRecoveryRetryInterval(recoveryRetryInterval);
 
             connection.CreateRabbitConnection(name);
 
