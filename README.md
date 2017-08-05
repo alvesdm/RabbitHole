@@ -82,7 +82,6 @@ Consumer
                                                         return Task.FromResult(true);
                                                     }));
 
-                HoldOn();
             }
 }
 ```
