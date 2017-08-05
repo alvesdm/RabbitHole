@@ -64,7 +64,7 @@ namespace RabbitHole.Samples.PubSub.Concurrence
                                                         Console.ForegroundColor = ConsoleColor.Yellow;
                                                         Console.WriteLine($"Received by '{name}' --> Message: {message.Name}, CorrelationId: {cId}");
                                                         Console.ResetColor();
-                                                        return true;
+                                                        return Task.FromResult(true);
                                                     }));
 
                 HoldOn();

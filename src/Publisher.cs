@@ -9,11 +9,13 @@ using RabbitHole.Exceptions;
 
 namespace RabbitHole
 {
-    public class Publisher : IPublisher
+    public class Publisher<T> : IPublisher<T>
+        where T : IMessage
     {
         public IMessage Message { get; private set; }
         public string RoutingKey { get; private set; }
         public IBasicProperties Properties { get; private set; }
+        public Func<T, Guid> CorrelationField { get; private set; }
         private int _tryConnectAttempts = 15;
 
         private RetryPolicy _policy;
@@ -34,8 +36,7 @@ namespace RabbitHole
                     });
         }
 
-        public void Go<T>(IConnection connection, IExchange exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration)
-            where T : IMessage
+        public void Go(IConnection connection, IExchange exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration)
         {
             try
             {
@@ -45,8 +46,11 @@ namespace RabbitHole
                 {
                     using (var channel = connection.RabbitConnection.CreateModel())
                     {
+                        Guid correlationId = this.CorrelationField != null ? this.CorrelationField((T)this.Message) : Guid.Empty;
                         var properties = this.Properties ?? channel.CreateBasicProperties();
                         var messageType = this.Message.GetType();
+
+                        properties.CorrelationId = (correlationId != Guid.Empty ? correlationId : Guid.NewGuid()).ToString();
                         if (messagesConfiguration.ContainsKey(messageType))
                         {
                             var messageConfiguration = messagesConfiguration[messageType] as IMessageConfiguration<T>;
@@ -55,8 +59,9 @@ namespace RabbitHole
 
                             routingKey = messageConfiguration.RoutingKey;
                             //queueName = messageConfiguration.QueueName;
-                            var correlationId = messageConfiguration.CorrelationField((T)this.Message);
-                            properties.CorrelationId = (correlationId != Guid.Empty ? correlationId : Guid.NewGuid()).ToString();
+                            correlationId = messageConfiguration.CorrelationField((T)this.Message);
+                            if(correlationId != Guid.Empty)
+                                properties.CorrelationId = correlationId.ToString();
                             properties.Persistent = messageConfiguration.Persistent;
                         }
 
@@ -70,6 +75,7 @@ namespace RabbitHole
                                              routingKey: routingKey,
                                              basicProperties: properties,
                                              body: body);
+                        Console.WriteLine($"RabbitHole: Sent Message. Exchange: {exchange.Name}, CorrelationId:{properties.CorrelationId}");
                     }
                 });
             }
@@ -80,21 +86,27 @@ namespace RabbitHole
             }
         }
 
-        public IPublisher WithMessage(IMessage message)
+        public IPublisher<T> WithMessage(IMessage message)
         {
             this.Message = message;
             return this;
         }
 
-        public IPublisher WithProperties(IBasicProperties properties)
+        public IPublisher<T> WithProperties(IBasicProperties properties)
         {
             this.Properties = properties;
             return this;
         }
 
-        public IPublisher WithRoutingKey(string routingKey)
+        public IPublisher<T> WithRoutingKey(string routingKey)
         {
             this.RoutingKey = routingKey;
+            return this;
+        }
+
+        public IPublisher<T> WithCorrelationId(Func<T, Guid> correlationField)
+        {
+            this.CorrelationField = correlationField;
             return this;
         }
     }

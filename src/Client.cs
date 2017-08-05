@@ -12,7 +12,7 @@ namespace RabbitHole
         private IExchange _exchange = new Exchange();
         private IQueue _queue = new Queue();
         private IConsumerBroker _consumer;
-        private IPublisher _publisher = new Publisher();
+        private IPublisherBroker _publisher;
         private IDictionary<Type, IMessageConfigurator> _messagesConfiguration = new Dictionary<Type, IMessageConfigurator>();
         //--------
 
@@ -40,11 +40,11 @@ namespace RabbitHole
             this.Shutdown();
         }
 
-        public void Publish<T>(Func<IPublisher, IPublisher> publisher)
+        public void Publish<T>(Func<IPublisher<T>, IPublisher<T>> publisher)
             where T : IMessage
         {
-            publisher(_publisher);
-            _publisher.Go<T>(_connection, _exchange, _messagesConfiguration);
+            _publisher = publisher(new Publisher<T>());
+            _publisher.Go(_connection, _exchange, _messagesConfiguration);
         }
 
         public void Shutdown()

@@ -5,15 +5,16 @@ using System.Text;
 
 namespace RabbitHole
 {
-    public interface IPublisher
+    public interface IPublisher<T> : IPublisherBroker
+        where T : IMessage
     {
         IMessage Message { get; }
         string RoutingKey { get; }
         IBasicProperties Properties { get; }
 
-        IPublisher WithMessage(IMessage message);
-        IPublisher WithRoutingKey(string routingKey);
-        IPublisher WithProperties(IBasicProperties properties);
-        void Go<T>(IConnection connection, IExchange exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration) where T : IMessage;
+        IPublisher<T> WithMessage(IMessage message);
+        IPublisher<T> WithRoutingKey(string routingKey);
+        IPublisher<T> WithProperties(IBasicProperties properties);
+        IPublisher<T> WithCorrelationId(Func<T, Guid> correlationField);
     }
 }

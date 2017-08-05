@@ -48,38 +48,42 @@ i.e a simple fanout would go like this:
 
 Publisher
 ```csharp
-using (var client = RabbitHole.Factories.ClientFactory.Create())
-{
-	client
-		.WithExchange(c => c.WithName("MessagingService"))
-		.ConfiguringMessage<CustomerUpdated>(c => c.WithCorrelationId(i => i.Id));
+            using (var client = ClientFactory.Create())
+            {
+                client
+                    .WithExchange(c => c.WithName("PublisherService"))
+                    .ConfiguringMessage<CustomerUpdated>(c => c.WithCorrelationId(i => i.Id));
 
-	while (true)
-	{
-		client
-			.Publish<CustomerUpdated>(p => p.WithMessage(new CustomerUpdated
-			{
-				Id = Guid.NewGuid(),
-				Name = "RabbitHole is my name"
-			}));
-		System.Threading.Thread.Sleep(1500);
-	}
-}
+                while (true)
+                {
+                    client
+                        .Publish<CustomerUpdated>(p => p
+                                                        .WithMessage(new CustomerUpdated
+                                                        {
+                                                            Id = Guid.NewGuid(),
+                                                            Name = "RabbitHole is my name"
+                                                        }));
+                    System.Threading.Thread.Sleep(1500);
+                }
+            }
 ```
 
 Consumer
 ```csharp
-using (var client = RabbitHole.Factories.ClientFactory.Create())
-{
-	client
-		.WithExchange(c => c.WithName("MessagingService"))
-		.WithQueue(q => q.WithName("MaillingService.CustomerUpdated"))
-		.Consume<CustomerUpdated>(c => c
-										.WhenReceive((ch, ea, message) =>
-										{
-											Console.WriteLine($"Received --> Message: {message.Name}, CorrelationId: {ea.BasicProperties.CorrelationId}");
-											return true;
-										}));
+            using (var client = ClientFactory.Create())
+            {
+                client
+                    .WithExchange(c => c.WithName("PublisherService"))
+                    .WithQueue(q => q.WithName("ConsumerService.CustomerUpdated"))
+                    .Consume<CustomerUpdated>(c => c
+                                                    .WhenReceive((ch, ea, message, cId) =>
+                                                    {
+                                                        Console.WriteLine($"Received --> Message: {message.Name}, CorrelationId: {cId}");
+                                                        return Task.FromResult(true);
+                                                    }));
+
+                HoldOn();
+            }
 }
 ```
 

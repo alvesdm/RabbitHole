@@ -1,5 +1,7 @@
-﻿using RabbitHole.Factories;
+﻿using Newtonsoft.Json;
+using RabbitHole.Factories;
 using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace RabbitHole.Samples.PubSub
@@ -27,17 +29,17 @@ namespace RabbitHole.Samples.PubSub
             using (var client = ClientFactory.Create())
             {
                 client
-                    .WithExchange(c => c.WithName("PublisherService"))
-                    .ConfiguringMessage<CustomerUpdated>(c => c.WithCorrelationId(i => i.Id));
+                    .WithExchange(c => c.WithName("PublisherService"));
 
                 while (true)
                 {
                     var id = Guid.NewGuid();
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"Sending message: CorrelationId:{id}");
+                    Console.WriteLine($"Sending message: Id:{id}");
                     Console.ResetColor();
                     client
                         .Publish<CustomerUpdated>(p => p
+                                                        .WithCorrelationId(r=>r.Id)
                                                         .WithMessage(new CustomerUpdated
                         {
                             Id = id,
@@ -58,12 +60,16 @@ namespace RabbitHole.Samples.PubSub
                     .WithExchange(c => c.WithName("PublisherService"))
                     .WithQueue(q => q.WithName("ConsumerService.CustomerUpdated"))
                     .Consume<CustomerUpdated>(c => c
+                                                    .WithDeserializer(ea =>
+                                                    {
+                                                        return JsonConvert.DeserializeObject<CustomerUpdated>(Encoding.UTF8.GetString(ea.Body));
+                                                    })
                                                     .WhenReceive((ch, ea, message, cId) =>
                                                     {
                                                         Console.ForegroundColor = ConsoleColor.Yellow;
                                                         Console.WriteLine($"Received by '{name}' --> Message: {message.Name}, CorrelationId: {cId}");
                                                         Console.ResetColor();
-                                                        return true;
+                                                        return Task.FromResult(true);
                                                     }));
 
                 HoldOn();

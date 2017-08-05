@@ -6,6 +6,7 @@ using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
 using Polly;
 using RabbitHole.Exceptions;
+using System.Threading.Tasks;
 
 namespace RabbitHole
 {
@@ -14,11 +15,19 @@ namespace RabbitHole
     {
         public string Queue { get; set; }
         public bool AutoKnowledge { get; private set; }
-        private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> _action;
+        private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, Task<bool>> _action;
+        private Func<BasicDeliverEventArgs, T> _deserializer;
         private IModel _channel;
         private int _tryConnectAttempts = 15;
 
-        public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, bool> action)
+        public Consumer()
+        {
+            this._deserializer = (ea) => {
+                return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(ea.Body));
+            };
+        }
+
+        public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, Task<bool>> action)
         {
             _action = action;
             return this;
@@ -62,13 +71,17 @@ namespace RabbitHole
                 }
 
                 var consumer = new EventingBasicConsumer(_channel);
-                consumer.Received += (model, ea) =>
+                consumer.Received += async (model, ea) =>
                 {
+                    Console.WriteLine($"RabbitHole: Received Message. Exchange: {exchange.Name}, Queue: {queueName}, CorrelationId:{ea.BasicProperties.CorrelationId}");
                     var success = false;
-                    var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(ea.Body));
+                    var message = _deserializer(ea);
                     try
                     {
-                        success = _action(model as EventingBasicConsumer, ea, message, ea.BasicProperties.CorrelationId);
+                        success = await _action(model as EventingBasicConsumer, ea, message, ea.BasicProperties.CorrelationId);
+                    }
+                    catch (Exception ex) {
+                        //Console.WriteLine(ex.Message);
                     }
                     finally {
                         if (this.AutoKnowledge || success)
@@ -112,6 +125,12 @@ namespace RabbitHole
         {
             _channel.Close();
             _channel.Dispose();
+        }
+
+        public IConsumer<T> WithDeserializer(Func<BasicDeliverEventArgs, T> action)
+        {
+            this._deserializer = action;
+            return this;
         }
     }
 }

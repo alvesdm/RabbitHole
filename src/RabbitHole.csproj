@@ -11,7 +11,7 @@
     <PackageProjectUrl>https://github.com/alvesdm/RabbitHole</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alvesdm/RabbitHole</RepositoryUrl>
     <PackageTags>RabbitMQ .netcore</PackageTags>
-    <Version>1.0.2</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
