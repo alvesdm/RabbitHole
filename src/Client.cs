@@ -9,12 +9,23 @@ namespace RabbitHole
     public class Client : IClient
     {
         private IConnection _connection = new Connection();
-        private IExchange _exchange = new Exchange();
-        private IQueue _queue = new Queue();
+        private IExchange _exchange;
+        private IQueue _queue;
         private IConsumerBroker _consumer;
         private IPublisherBroker _publisher;
         private IDictionary<Type, IMessageConfigurator> _messagesConfiguration = new Dictionary<Type, IMessageConfigurator>();
         //--------
+
+        public Client()
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            _exchange = new Exchange();
+            _queue = new Queue();
+        }
 
         public IClient ConfiguringMessage<T>(Func<IMessageConfiguration<T>, IMessageConfiguration<T>> configuration) 
             where T : IMessage
@@ -33,6 +44,8 @@ namespace RabbitHole
             }
             _consumer = consumer(new Consumer<T>());
             _consumer.Go(_connection, _exchange, _queue);
+
+            Initialize(); //reset queue and exchange
         }
 
         public void Dispose()
