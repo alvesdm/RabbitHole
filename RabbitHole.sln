@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26430.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHole", "src\RabbitHole.csproj", "{37BDFB0A-A182-4424-9A78-90050E094B70}"
 EndProject
@@ -12,9 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{843BCC6E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{39BD7A02-D708-4F8A-8D32-6F94527470CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHole.Samples.PubSub", "samples\RabbitHole.Samples.PubSub\RabbitHole.Samples.PubSub.csproj", "{A8D0F702-B5E5-4B4A-8260-2E7F64A9738F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHole.Samples.PubSub", "samples\RabbitHole.Samples.PubSub\RabbitHole.Samples.PubSub.csproj", "{A8D0F702-B5E5-4B4A-8260-2E7F64A9738F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHole.Samples.PubSub.Concurrence", "samples\RabbitHole.Samples.PubSub.Concurrence\RabbitHole.Samples.PubSub.Concurrence.csproj", "{80575E61-9CE2-458A-AE18-25705442CDF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHole.Samples.IoC", "samples\RabbitHole.Samples.IoC\RabbitHole.Samples.IoC.csproj", "{EDBE39AD-9CD5-4103-A353-497C585406B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +36,10 @@ Global
 		{80575E61-9CE2-458A-AE18-25705442CDF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80575E61-9CE2-458A-AE18-25705442CDF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80575E61-9CE2-458A-AE18-25705442CDF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDBE39AD-9CD5-4103-A353-497C585406B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDBE39AD-9CD5-4103-A353-497C585406B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDBE39AD-9CD5-4103-A353-497C585406B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDBE39AD-9CD5-4103-A353-497C585406B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,5 +47,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{A8D0F702-B5E5-4B4A-8260-2E7F64A9738F} = {39BD7A02-D708-4F8A-8D32-6F94527470CE}
 		{80575E61-9CE2-458A-AE18-25705442CDF2} = {39BD7A02-D708-4F8A-8D32-6F94527470CE}
+		{EDBE39AD-9CD5-4103-A353-497C585406B7} = {39BD7A02-D708-4F8A-8D32-6F94527470CE}
 	EndGlobalSection
 EndGlobal
