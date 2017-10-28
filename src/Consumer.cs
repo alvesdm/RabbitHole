@@ -52,6 +52,14 @@ namespace RabbitHole
                 _channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
             }
 
+            void RequeueIt(ulong deliveryTag)
+            {
+                Task.Run(()=> {
+                    System.Threading.Thread.Sleep(5000);
+                    _channel.BasicNack(deliveryTag: deliveryTag, multiple: false, requeue: true);
+                });
+            }
+
             try
             {
                 TryToStablishAChannel(connection);
@@ -81,7 +89,9 @@ namespace RabbitHole
                         success = await _action(model as EventingBasicConsumer, ea, message, ea.BasicProperties.CorrelationId);
                     }
                     catch (Exception ex) {
-                        //Console.WriteLine(ex.Message);
+                        //https://www.rabbitmq.com/nack.html
+                        //http://www.rabbitmq.com/dlx.html
+                        //RequeueIt(ea.DeliveryTag);
                     }
                     finally {
                         if (this.AutoKnowledge || success)

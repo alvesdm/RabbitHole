@@ -72,7 +72,7 @@ namespace RabbitHole
 
                         var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(this.Message));
                         channel.BasicPublish(exchange: exchange.Name,
-                                             routingKey: routingKey,
+                                             routingKey: routingKey ?? string.Empty,
                                              basicProperties: properties,
                                              body: body);
                         Console.WriteLine($"RabbitHole: Sent Message. Exchange: {exchange.Name}, CorrelationId:{properties.CorrelationId}");

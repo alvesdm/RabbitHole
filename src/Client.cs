@@ -69,7 +69,7 @@ namespace RabbitHole
 
         public IClient WithConnection(Func<IConnection, IConnection> connection)
         {
-            connection(_connection);
+            _connection = connection(_connection);
             return this;
         }
 
@@ -81,13 +81,13 @@ namespace RabbitHole
 
         public IClient WithExchange(Func<IExchange, IExchange> exchange)
         {
-            exchange(_exchange);
+            _exchange = exchange(_exchange);
             return this;
         }
 
         public IClient WithQueue(Func<IQueue, IQueue> queue)
         {
-            queue(_queue);
+            _queue  = queue(_queue);
             return this;
         }
     }

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>RabbitHole</PackageId>
+    <PackageId>alvesdm.RabbitHole</PackageId>
     <Authors>Demetrio Alves</Authors>
     <Company />
     <Description>A RabbitMQ wrapper for .net core</Description>
@@ -11,7 +11,7 @@
     <PackageProjectUrl>https://github.com/alvesdm/RabbitHole</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alvesdm/RabbitHole</RepositoryUrl>
     <PackageTags>RabbitMQ .netcore</PackageTags>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
