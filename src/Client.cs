@@ -14,6 +14,7 @@ namespace RabbitHole
         private IConsumerBroker _consumer;
         private IPublisherBroker _publisher;
         private IDictionary<Type, IMessageConfigurator> _messagesConfiguration = new Dictionary<Type, IMessageConfigurator>();
+        private int _requeueWaitingTime = 500;
         //--------
 
         public Client()
@@ -42,7 +43,7 @@ namespace RabbitHole
             {
                 _queue.WithBinding(b => b.WithExchange(_exchange).WithQueue(_queue));
             }
-            _consumer = consumer(new Consumer<T>());
+            _consumer = consumer(new Consumer<T>().WithRequeueTime(_requeueWaitingTime));
             _consumer.Go(_connection, _exchange, _queue);
 
             Initialize(); //reset queue and exchange
@@ -51,6 +52,12 @@ namespace RabbitHole
         public void Dispose()
         {
             this.Shutdown();
+        }
+
+        public IClient WithRequeueTime(int requeueWaitingTime)
+        {
+            _requeueWaitingTime = requeueWaitingTime;
+            return this;
         }
 
         public void Publish<T>(Func<IPublisher<T>, IPublisher<T>> publisher)

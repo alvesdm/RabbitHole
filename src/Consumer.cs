@@ -19,6 +19,7 @@ namespace RabbitHole
         private Func<BasicDeliverEventArgs, T> _deserializer;
         private IModel _channel;
         private int _tryConnectAttempts = 15;
+        private int _requeueWaitingTime = 500;
 
         public Consumer()
         {
@@ -55,59 +56,51 @@ namespace RabbitHole
             void RequeueIt(ulong deliveryTag)
             {
                 Task.Run(()=> {
-                    System.Threading.Thread.Sleep(5000);
+                    System.Threading.Thread.Sleep(_requeueWaitingTime);
                     _channel.BasicNack(deliveryTag: deliveryTag, multiple: false, requeue: true);
                 });
             }
 
-            try
+            TryToStablishAChannel(connection);
+
+            _channel.ExchangeDeclare(exchange: exchange.Name,
+                type: exchange.Type.ToString().ToLower(),
+                durable: exchange.Durable,
+                autoDelete: exchange.AutoDelete);
+            var queueName = _channel.QueueDeclare(queue.Name, queue.Durable, queue.Exclusive, queue.AutoDelete).QueueName;
+            _channel.BasicQos(prefetchSize: queue.Qos.PrefetchSize, prefetchCount: queue.Qos.PrefetchCount, global: queue.Qos.Global);
+
+            foreach (var binding in queue.Bindings)
             {
-                TryToStablishAChannel(connection);
+                _channel.QueueBind(queue: queueName,
+                    exchange: exchange.Name,
+                    routingKey: binding.RoutingKey);
+            }
 
-                _channel.ExchangeDeclare(exchange: exchange.Name,
-                                        type: exchange.Type.ToString().ToLower(),
-                                        durable: exchange.Durable,
-                                        autoDelete: exchange.AutoDelete);
-                var queueName = _channel.QueueDeclare(queue.Name, queue.Durable, queue.Exclusive, queue.AutoDelete).QueueName;
-                _channel.BasicQos(prefetchSize: queue.Qos.PrefetchSize, prefetchCount: queue.Qos.PrefetchCount, global: queue.Qos.Global);
-
-                foreach (var binding in queue.Bindings)
+            var consumer = new EventingBasicConsumer(_channel);
+            consumer.Received += async (model, ea) =>
+            {
+                Console.WriteLine($"RabbitHole: Received Message. Exchange: {exchange.Name}, Queue: {queueName}, CorrelationId:{ea.BasicProperties.CorrelationId}");
+                var success = false;
+                var message = _deserializer(ea);
+                try
                 {
-                    _channel.QueueBind(queue: queueName,
-                                      exchange: exchange.Name,
-                                      routingKey: binding.RoutingKey);
+                    success = await _action(model as EventingBasicConsumer, ea, message, ea.BasicProperties.CorrelationId);
                 }
+                catch (Exception ex) {
+                    //https://www.rabbitmq.com/nack.html
+                    //http://www.rabbitmq.com/dlx.html
+                    RequeueIt(ea.DeliveryTag);
+                }
+                finally {
+                    if (this.AutoKnowledge || success)
+                        KnoledgeIt(ea.DeliveryTag);
+                }
+            };
 
-                var consumer = new EventingBasicConsumer(_channel);
-                consumer.Received += async (model, ea) =>
-                {
-                    Console.WriteLine($"RabbitHole: Received Message. Exchange: {exchange.Name}, Queue: {queueName}, CorrelationId:{ea.BasicProperties.CorrelationId}");
-                    var success = false;
-                    var message = _deserializer(ea);
-                    try
-                    {
-                        success = await _action(model as EventingBasicConsumer, ea, message, ea.BasicProperties.CorrelationId);
-                    }
-                    catch (Exception ex) {
-                        //https://www.rabbitmq.com/nack.html
-                        //http://www.rabbitmq.com/dlx.html
-                        //RequeueIt(ea.DeliveryTag);
-                    }
-                    finally {
-                        if (this.AutoKnowledge || success)
-                            KnoledgeIt(ea.DeliveryTag);
-                    }
-                };
-
-                _channel.BasicConsume(queue: queueName,
-                                     noAck: false,
-                                     consumer: consumer);
-            }
-            catch (Exception ex)
-            {
-                ///TODO logging
-                throw;
-            }
+            _channel.BasicConsume(queue: queueName,
+                noAck: false,
+                consumer: consumer);
         }
 
         private void TryToStablishAChannel(IConnection connection)
@@ -140,6 +133,12 @@ namespace RabbitHole
         public IConsumer<T> WithDeserializer(Func<BasicDeliverEventArgs, T> action)
         {
             this._deserializer = action;
+            return this;
+        }
+
+        public IConsumer<T> WithRequeueTime(int requeueWaitingTime)
+        {
+            this._requeueWaitingTime = requeueWaitingTime;
             return this;
         }
     }

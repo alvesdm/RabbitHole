@@ -2,6 +2,7 @@
 using RabbitHole.Factories;
 using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RabbitHole.Samples.PubSub
@@ -45,7 +46,8 @@ namespace RabbitHole.Samples.PubSub
                             Id = id,
                             Name = "RabbitHole is my name"
                         }));
-                    System.Threading.Thread.Sleep(1500);
+                    System.Threading.Thread.Sleep(10);
+                    //break;
                 }
             }
 
@@ -54,21 +56,28 @@ namespace RabbitHole.Samples.PubSub
 
         private static void StartConsumer(string name)
         {
+            var consumedCounter = 0;
             using (var client = ClientFactory.Create())
             {
                 client
                     .WithExchange(c => c.WithName("PublisherService"))
                     .WithQueue(q => q.WithName("ConsumerService.CustomerUpdated"))
                     .Consume<CustomerUpdated>(c => c
+                                                    .WithRequeueTime(100)
                                                     .WithDeserializer(ea =>
                                                     {
                                                         return JsonConvert.DeserializeObject<CustomerUpdated>(Encoding.UTF8.GetString(ea.Body));
                                                     })
                                                     .WhenReceive((ch, ea, message, cId) =>
                                                     {
+                                                        if(DateTime.Now.Second % 2 == 0)
+                                                            throw new Exception("sdsdfsdf");
                                                         Console.ForegroundColor = ConsoleColor.Yellow;
                                                         Console.WriteLine($"Received by '{name}' --> Message: {message.Name}, CorrelationId: {cId}");
                                                         Console.ResetColor();
+                                                        Interlocked.Increment(ref consumedCounter);
+                                                        Console.ForegroundColor = ConsoleColor.Yellow;
+                                                        Console.WriteLine($"{consumedCounter} received by '{name}'.");
                                                         return Task.FromResult(true);
                                                     }));
 

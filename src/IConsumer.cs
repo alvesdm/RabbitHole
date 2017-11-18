@@ -15,6 +15,7 @@ namespace RabbitHole
         IConsumer<T> WithQueue(string queueName);
         IConsumer<T> WithDeserializer(Func<BasicDeliverEventArgs, T> action);
         IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, Task<bool>> action);
+        IConsumer<T> WithRequeueTime(int requeueWaitingTime);
         IConsumer<T> BeingAutoKnowledge(bool isAutoKnowledge);
     }
 }

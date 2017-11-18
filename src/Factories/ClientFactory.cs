@@ -15,7 +15,7 @@ namespace RabbitHole.Factories
             return Create(null);
         }
 
-        public static IClient Create(string name, bool automaticRecoveryEnabled = true, bool topologyRecoveryEnabled = true, int recoveryRetryInterval = 10)
+        public static IClient Create(string name, bool automaticRecoveryEnabled = true, bool topologyRecoveryEnabled = true, int recoveryRetryInterval = 10, int requeueWaitingTime = 500)
         {
             var connection = new Connection()
                                     .WithHostName(_defaultHostName)
@@ -29,7 +29,8 @@ namespace RabbitHole.Factories
             connection.CreateRabbitConnection(name);
 
             return new Client()
-                .WithConnection(connection);
+                .WithConnection(connection)
+                .WithRequeueTime(requeueWaitingTime);
         }
 
         public static void WithDefaultConnection(Func<IConnection, IConnection> connection) {
