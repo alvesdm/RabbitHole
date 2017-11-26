@@ -15,9 +15,15 @@ namespace RabbitHole.Factories
             return Create(null);
         }
 
-        public static IClient Create(string name, bool automaticRecoveryEnabled = true, bool topologyRecoveryEnabled = true, int recoveryRetryInterval = 10, int requeueWaitingTime = 500)
+        public static IClient Create(
+            string name, 
+            bool automaticRecoveryEnabled = true, 
+            bool topologyRecoveryEnabled = true, 
+            int recoveryRetryInterval = 10, 
+            int requeueWaitingTime = 500,
+            IConnection connection = null)
         {
-            var connection = new Connection()
+            var cnn = connection ?? new Connection()
                                     .WithHostName(_defaultHostName)
                                     .WithVirtualHost(_defaulVirtualHost)
                                     .WithUserName(_defaultUserName)
@@ -26,10 +32,10 @@ namespace RabbitHole.Factories
                                     .WithTopologyRecovery(topologyRecoveryEnabled)
                                     .WithRecoveryRetryInterval(recoveryRetryInterval);
 
-            connection.CreateRabbitConnection(name);
+            cnn.CreateRabbitConnection(name);
 
             return new Client()
-                .WithConnection(connection)
+                .WithConnection(cnn)
                 .WithRequeueTime(requeueWaitingTime);
         }
 

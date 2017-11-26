@@ -4,6 +4,7 @@ namespace RabbitHole
     public interface IClient : IDisposable
     {
         IClient WithConnection(Func<IConnection, IConnection> connection);
+        IClient WithConnection(IConnection connection);
         IClient WithExchange(Func<IExchange, IExchange> exchange);
         IClient WithQueue(Func<IQueue, IQueue> queue);
         IClient WithRequeueTime(int requeueWaitingTime);

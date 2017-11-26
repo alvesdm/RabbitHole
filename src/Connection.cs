@@ -18,6 +18,14 @@ namespace RabbitHole
         public int RecoveryRetryInterval { get; private set; }
         public RabbitMQ.Client.IConnection RabbitConnection { get; private set; }
 
+        public Connection()
+        {
+            UserName = "guest";
+            Password = "guest";
+            HostName = "localhost";
+            VirtualHost = "/";
+        }
+
         public RabbitMQ.Client.IConnection CreateRabbitConnection()
         {
             return CreateRabbitConnection(null);

@@ -26,7 +26,10 @@ namespace RabbitHole.Samples.PubSub
             Console.ReadKey();
         }
 
-        private static void StartPublisher() {
+        private static void StartPublisher()
+        {
+            var connection = new Connection().WithUserName("guest2").WithPassword("guest2");
+            //ClientFactory.WithDefaultConnection(c=>c.WithUserName("guest2").WithPassword("guest2"));
             using (var client = ClientFactory.Create())
             {
                 client
