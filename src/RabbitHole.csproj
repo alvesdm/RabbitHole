@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>alvesdm.RabbitHole</PackageId>
     <Authors>Demetrio Alves</Authors>
@@ -11,11 +11,11 @@
     <PackageProjectUrl>https://github.com/alvesdm/RabbitHole</PackageProjectUrl>
     <RepositoryUrl>https://github.com/alvesdm/RabbitHole</RepositoryUrl>
     <PackageTags>RabbitMQ .netcore</PackageTags>
-    <Version>1.2.2</Version>
+    <Version>1.2.3</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>bin\Release\netcoreapp2.0\</OutputPath>
+    <OutputPath>bin\Release\netstandard2.0\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
