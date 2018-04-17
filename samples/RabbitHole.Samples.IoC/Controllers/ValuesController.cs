@@ -9,10 +9,10 @@ namespace RabbitHole.Samples.IoC.Controllers
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
-        DebitBus _bus;
+        IDebitBus _bus;
         public ValuesController(IDebitBus bus)
         {
-            //_bus = bus;
+            _bus = bus;
         }
         // GET api/values
         [HttpGet]

@@ -30,11 +30,8 @@ namespace RabbitHole.Samples.IoC
             // Add framework services.
             services.AddMvc();
 
-            services.AddScoped(typeof(IDebitBus), (s) => {
-                return RabbitHole.Factories.ClientFactory.Create();
-            });
-
-            services.AddTransient<DebitBus, DebitBus>();
+            services.AddScoped<IDebitBus>(s => new DebitBus(Factories.ClientFactory.Create()));
+            //services.AddScoped(s => new DebitBus(Factories.ClientFactory.Create()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,22 +40,23 @@ namespace RabbitHole.Samples.IoC
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            app.UseDeveloperExceptionPage();
+
             app.UseMvc();
         }
     }
 
-    public interface IDebitBus : IClient{}
-
-    public class DebitBus
+    public interface IDebitBus : IBus
     {
-        IClient _client;
-        public DebitBus(IDebitBus client)
-        {
-            _client = client;
-        }
+        void Publish(DebitAccountCommand message);
+    }
+    
+    public class DebitBus : BusBase, IDebitBus
+    {
+        public DebitBus(IClient client) : base(client){ }
 
         public void Publish(DebitAccountCommand message) {
-            _client
+            Client
                 .WithExchange(e=>e.WithName(typeof(DebitAccountCommand).Name))
                 .Publish<DebitAccountCommand>(m=>m.WithMessage(message));
         }
