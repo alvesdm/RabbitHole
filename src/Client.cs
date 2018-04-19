@@ -9,24 +9,13 @@ namespace RabbitHole
     public class Client : IClient
     {
         private IConnection _connection = new Connection();
-        private IExchange _exchange;
-        private IQueue _queue;
+        private readonly List<IExchange> _exchanges = new List<IExchange>();
+        private List<IQueue> _queues = new List<IQueue>();
         private IConsumerBroker _consumer;
         private IPublisherBroker _publisher;
-        private IDictionary<Type, IMessageConfigurator> _messagesConfiguration = new Dictionary<Type, IMessageConfigurator>();
+        private readonly IDictionary<Type, IMessageConfigurator> _messagesConfiguration = new Dictionary<Type, IMessageConfigurator>();
         private int _requeueWaitingTime = 500;
         //--------
-
-        public Client()
-        {
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            _exchange = new Exchange();
-            _queue = new Queue();
-        }
 
         public IClient ConfiguringMessage<T>(Func<IMessageConfiguration<T>, IMessageConfiguration<T>> configuration) 
             where T : IMessage
@@ -35,18 +24,16 @@ namespace RabbitHole
             return this;
         }
 
+        public IConnection GetConnection()
+        {
+            return _connection;
+        }
+
         public void Consume<T>(Func<IConsumer<T>, IConsumer<T>> consumer)
             where T : IMessage
         {
-            //Perform autobindind if none
-            if (!_queue.Bindings.Any() && _exchange.Type.Equals(ExchangeType.Fanout))
-            {
-                _queue.WithBinding(b => b.WithExchange(_exchange).WithQueue(_queue));
-            }
             _consumer = consumer(new Consumer<T>().WithRequeueTime(_requeueWaitingTime));
-            _consumer.Go(_connection, _exchange, _queue);
-
-            Initialize(); //reset queue and exchange
+            _consumer.Go(_connection, _exchanges, _queues);
         }
 
         public void Dispose()
@@ -64,7 +51,7 @@ namespace RabbitHole
             where T : IMessage
         {
             _publisher = publisher(new Publisher<T>());
-            _publisher.Go(_connection, _exchange, _messagesConfiguration);
+            _publisher.Go(_connection, _exchanges, _messagesConfiguration);
         }
 
         public void Shutdown()
@@ -86,15 +73,15 @@ namespace RabbitHole
             return this;
         }
 
-        public IClient WithExchange(Func<IExchange, IExchange> exchange)
+        public IClient DeclareExchange(Func<IExchange, IExchange> exchange)
         {
-            _exchange = exchange(_exchange);
+            _exchanges.Add(exchange(new Exchange()));
             return this;
         }
 
-        public IClient WithQueue(Func<IQueue, IQueue> queue)
+        public IClient DeclareQueue(Func<IQueue, IQueue> queue)
         {
-            _queue  = queue(_queue);
+            _queues.Add(queue(new Queue()));
             return this;
         }
     }

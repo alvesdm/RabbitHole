@@ -57,8 +57,8 @@ namespace RabbitHole.Samples.IoC
 
         public void Publish(DebitAccountCommand message) {
             Client
-                .WithExchange(e=>e.WithName(typeof(DebitAccountCommand).Name))
-                .Publish<DebitAccountCommand>(m=>m.WithMessage(message));
+                .DeclareExchange(e=>e.WithName(typeof(DebitAccountCommand).Name))
+                .Publish<DebitAccountCommand>(m=>m.WithExchange(typeof(DebitAccountCommand).Name).WithMessage(message));
         }
     }
 

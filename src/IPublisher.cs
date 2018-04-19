@@ -16,5 +16,6 @@ namespace RabbitHole
         IPublisher<T> WithRoutingKey(string routingKey);
         IPublisher<T> WithProperties(IBasicProperties properties);
         IPublisher<T> WithCorrelationId(Func<T, Guid> correlationField);
+        IPublisher<T> WithExchange(string exchangeName);
     }
 }

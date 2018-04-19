@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using RabbitMQ.Client;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
-using RabbitHole.Exceptions;
 
 namespace RabbitHole
 {
@@ -19,6 +19,7 @@ namespace RabbitHole
         private int _tryConnectAttempts = 15;
 
         private RetryPolicy _policy;
+        private string _exchangeName;
 
         public Publisher()
         {
@@ -36,17 +37,20 @@ namespace RabbitHole
                     });
         }
 
-        public void Go(IConnection connection, IExchange exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration)
+        public void Go(IConnection connection, IEnumerable<IExchange> exchanges, IDictionary<Type, IMessageConfigurator> messagesConfiguration)
         {
             try
             {
+                var exchange = exchanges.FirstOrDefault(e => e.Name.Equals(_exchangeName));
+                if (exchange == null) throw new Exception($"No exchange with name '{_exchangeName}' was found.");
+
                 var routingKey = this.RoutingKey;
 
                 _policy.Execute(() =>
                 {
                     using (var channel = connection.RabbitConnection.CreateModel())
                     {
-                        Guid correlationId = this.CorrelationField != null ? this.CorrelationField((T)this.Message) : Guid.Empty;
+                        var correlationId = CorrelationField?.Invoke((T)Message) ?? Guid.Empty;
                         var properties = this.Properties ?? channel.CreateBasicProperties();
                         var messageType = this.Message.GetType();
 
@@ -107,6 +111,12 @@ namespace RabbitHole
         public IPublisher<T> WithCorrelationId(Func<T, Guid> correlationField)
         {
             this.CorrelationField = correlationField;
+            return this;
+        }
+
+        public IPublisher<T> WithExchange(string exchangeName)
+        {
+            _exchangeName = exchangeName;
             return this;
         }
     }

@@ -33,7 +33,7 @@ namespace RabbitHole.Samples.PubSub
             using (var client = ClientFactory.Create())
             {
                 client
-                    .WithExchange(c => c.WithName("PublisherService"));
+                    .DeclareExchange(c => c.WithName("PublisherService"));
 
                 while (true)
                 {
@@ -43,6 +43,7 @@ namespace RabbitHole.Samples.PubSub
                     Console.ResetColor();
                     client
                         .Publish<CustomerUpdated>(p => p
+                                                        .WithExchange("PublisherService")
                                                         .WithCorrelationId(r=>r.Id)
                                                         .WithMessage(new CustomerUpdated
                         {
@@ -63,9 +64,11 @@ namespace RabbitHole.Samples.PubSub
             using (var client = ClientFactory.Create())
             {
                 client
-                    .WithExchange(c => c.WithName("PublisherService"))
-                    .WithQueue(q => q.WithName("ConsumerService.CustomerUpdated"))
+                    .DeclareExchange(c => c.WithName("PublisherService"))
+                    .DeclareQueue(q => q.WithName("ConsumerService.CustomerUpdated"))
                     .Consume<CustomerUpdated>(c => c
+                                                    .WithExchange("PublisherService")
+                                                    .WithQueue("ConsumerService.CustomerUpdated")
                                                     .WithRequeueTime(100)
                                                     .WithDeserializer(ea =>
                                                     {

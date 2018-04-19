@@ -28,7 +28,7 @@ namespace RabbitHole.Samples.PubSub.Concurrence
             using (var client = ClientFactory.Create())
             {
                 client
-                    .WithExchange(c => c.WithName("PublisherService"))
+                    .DeclareExchange(c => c.WithName("PublisherService"))
                     .ConfiguringMessage<CustomerUpdated>(c => c.WithCorrelationId(i => i.Id));
 
                 while (true)
@@ -39,6 +39,7 @@ namespace RabbitHole.Samples.PubSub.Concurrence
                     Console.ResetColor();
                     client
                         .Publish<CustomerUpdated>(p => p
+                                                        .WithExchange("PublisherService")
                                                         .WithMessage(new CustomerUpdated
                                                         {
                                                             Id = id,
@@ -56,9 +57,11 @@ namespace RabbitHole.Samples.PubSub.Concurrence
             using (var client = ClientFactory.Create())
             {
                 client
-                    .WithExchange(c => c.WithName("PublisherService"))
-                    .WithQueue(q => q.WithName($"{name}.CustomerUpdated"))
+                    .DeclareExchange(c => c.WithName("PublisherService"))
+                    .DeclareQueue(q => q.WithName($"{name}.CustomerUpdated"))
                     .Consume<CustomerUpdated>(c => c
+                                                    .WithExchange("PublisherService")
+                                                    .WithQueue($"{ name}.CustomerUpdated")
                                                     .WhenReceive((ch, ea, message, cId) =>
                                                     {
                                                         Console.ForegroundColor = ConsoleColor.Yellow;

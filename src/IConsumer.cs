@@ -10,9 +10,9 @@ namespace RabbitHole
     public interface IConsumer<T> : IConsumerBroker
         where T : IMessage
     {
-        string Queue { get; }
         bool AutoKnowledge { get; }
         IConsumer<T> WithQueue(string queueName);
+        IConsumer<T> WithExchange(string exchangeName);
         IConsumer<T> WithDeserializer(Func<BasicDeliverEventArgs, T> action);
         IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, Task<bool>> action);
         IConsumer<T> WithRequeueTime(int requeueWaitingTime);

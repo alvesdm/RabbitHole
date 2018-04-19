@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -13,19 +14,19 @@ namespace RabbitHole
     public class Consumer<T> : IConsumer<T>
         where T : IMessage
     {
-        public string Queue { get; set; }
+        private string _queueName;
+        private string _exchangeName;
         public bool AutoKnowledge { get; private set; }
         private Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, Task<bool>> _action;
         private Func<BasicDeliverEventArgs, T> _deserializer;
         private IModel _channel;
         private int _tryConnectAttempts = 15;
         private int _requeueWaitingTime = 500;
+        
 
         public Consumer()
         {
-            this._deserializer = (ea) => {
-                return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(ea.Body));
-            };
+            _deserializer = (ea) => JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(ea.Body));
         }
 
         public IConsumer<T> WhenReceive(Func<EventingBasicConsumer, BasicDeliverEventArgs, T, string, Task<bool>> action)
@@ -36,7 +37,13 @@ namespace RabbitHole
 
         public IConsumer<T> WithQueue(string queueName)
         {
-            this.Queue = queueName;
+            _queueName = queueName;
+            return this;
+        }
+
+        public IConsumer<T> WithExchange(string exchangeName)
+        {
+            _exchangeName = exchangeName;
             return this;
         }
 
@@ -46,8 +53,13 @@ namespace RabbitHole
             return this;
         }
 
-        public void Go(IConnection connection, IExchange exchange, IQueue queue)
+        public void Go(IConnection connection, IEnumerable<IExchange> exchanges, IEnumerable<IQueue> queues)
         {
+            var exchange = exchanges.FirstOrDefault(e => e.Name.Equals(_exchangeName));
+            if(exchange == null) throw new Exception($"No exchange with name '{_exchangeName}' was found.");
+            var queue = queues.FirstOrDefault(q => q.Name.Equals(_queueName));
+            if (queue == null) throw new Exception($"No queue with name '{_queueName}' was found.");
+
             void KnoledgeIt(ulong deliveryTag)
             {
                 _channel.BasicAck(deliveryTag: deliveryTag, multiple: false);
@@ -69,6 +81,12 @@ namespace RabbitHole
                 autoDelete: exchange.AutoDelete);
             var queueName = _channel.QueueDeclare(queue.Name, queue.Durable, queue.Exclusive, queue.AutoDelete).QueueName;
             _channel.BasicQos(prefetchSize: queue.Qos.PrefetchSize, prefetchCount: queue.Qos.PrefetchCount, global: queue.Qos.Global);
+
+            //Perform autobindind if none
+            if (!queue.Bindings.Any() && exchange.Type.Equals(Enums.ExchangeType.Fanout))
+            {
+                queue.WithBinding(b => b.WithExchange(exchange).WithQueue(queue));
+            }
 
             foreach (var binding in queue.Bindings)
             {
@@ -103,6 +121,7 @@ namespace RabbitHole
                 consumer: consumer);
         }
 
+        //https://derickbailey.com/2014/03/26/2-lessons-learned-and-3-resources-for-for-learning-rabbitmq-on-nodejs/
         private void TryToStablishAChannel(IConnection connection)
         {
             Policy
@@ -132,13 +151,13 @@ namespace RabbitHole
 
         public IConsumer<T> WithDeserializer(Func<BasicDeliverEventArgs, T> action)
         {
-            this._deserializer = action;
+            _deserializer = action;
             return this;
         }
 
         public IConsumer<T> WithRequeueTime(int requeueWaitingTime)
         {
-            this._requeueWaitingTime = requeueWaitingTime;
+            _requeueWaitingTime = requeueWaitingTime;
             return this;
         }
     }

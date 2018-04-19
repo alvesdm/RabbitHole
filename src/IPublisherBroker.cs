@@ -5,6 +5,6 @@ namespace RabbitHole
 {
     public interface IPublisherBroker
     {
-        void Go(IConnection connection, IExchange exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration);
+        void Go(IConnection connection, IEnumerable<IExchange> exchange, IDictionary<Type, IMessageConfigurator> messagesConfiguration);
     }
 }
